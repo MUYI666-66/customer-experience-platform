@@ -2,6 +2,9 @@ import type { Role } from '@/types/domain';
 
 export const ROUTES = {
   LOGIN: '/login',
+  ANALYSIS: '/analysis',
+  UPLOAD: '/upload',
+  PIPELINE: '/pipeline',
   OVERVIEW: '/overview',
   DISSATISFACTION: '/dissatisfaction',
   SURVEY: '/survey',
@@ -15,6 +18,7 @@ export const ROUTES = {
   ADMIN_FEATURES: '/admin/features',
   ADMIN_MODELS: '/admin/models',
   ADMIN_USERS: '/admin/users',
+  SYSTEM: '/system',
 } as const;
 
 export interface NavItem {
@@ -26,6 +30,14 @@ export interface NavItem {
 }
 
 export const NAVIGATION: NavItem[] = [
+  {
+    label: 'AI 分析中心', icon: 'Sparkles', path: ROUTES.ANALYSIS,
+    roles: ['admin', 'analyst', 'operator', 'auditor'],
+  },
+  {
+    label: '数据上传', icon: 'Upload', path: ROUTES.UPLOAD,
+    roles: ['admin', 'analyst', 'operator'],
+  },
   {
     label: '首页总览', icon: 'LayoutDashboard', path: ROUTES.OVERVIEW,
     roles: ['admin', 'analyst', 'operator', 'auditor'],
@@ -70,5 +82,9 @@ export const NAVIGATION: NavItem[] = [
       { label: '模型管理', icon: 'Box', path: ROUTES.ADMIN_MODELS, roles: ['admin'] },
       { label: '用户权限', icon: 'Shield', path: ROUTES.ADMIN_USERS, roles: ['admin'] },
     ],
+  },
+  {
+    label: '系统状态', icon: 'Activity', path: ROUTES.SYSTEM,
+    roles: ['admin', 'analyst', 'operator', 'auditor'],
   },
 ];

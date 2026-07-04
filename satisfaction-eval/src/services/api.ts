@@ -87,4 +87,17 @@ export const api = {
   // ====== Report APIs ======
   getReports: () => fetchApi('/reports/'),
   exportReport: (data: object) => fetchApi('/reports/export', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ====== Upload APIs ======
+  uploadFile: (formData: FormData) =>
+    fetchApi('/upload/file', { method: 'POST', body: formData, headers: {} }),
+  getUploadStatus: () => fetchApi('/upload/status'),
+  downloadTemplate: (type: string) => fetchApi(`/upload/template/${type}`),
+
+  // ====== ML Pipeline APIs ======
+  runMLPipeline: (step?: string) =>
+    fetchApi('/pipeline/run', { method: 'POST', body: JSON.stringify({ step }) }),
+  getMLPipelineStatus: () => fetchApi('/pipeline/status'),
+  getMLPipelineLogs: () => fetchApi('/pipeline/logs'),
+  resetMLPipeline: () => fetchApi('/pipeline/reset', { method: 'POST' }),
 };

@@ -6,17 +6,28 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/table';
 import { cn, formatDateTime } from '@/lib/utils';
 import type { DataSource, FeatureDefinition, ModelVersion } from '@/types/domain';
-import { Database, Cpu, Box, Shield, CheckCircle, XCircle, AlertCircle, BarChart3 } from 'lucide-react';
+import { Database, Cpu, Box, Shield, CheckCircle, XCircle, AlertCircle, BarChart3, Sparkles, Trash2, Plus, Zap, Wifi, WifiOff } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-type AdminTab = 'sources' | 'features' | 'models' | 'users';
+type AdminTab = 'sources' | 'features' | 'models' | 'users' | 'ai';
 
 const tabs: { key: AdminTab; label: string; icon: typeof Database }[] = [
   { key: 'sources', label: '数据源配置', icon: Database },
   { key: 'features', label: '特征管理', icon: Cpu },
   { key: 'models', label: '模型管理', icon: Box },
   { key: 'users', label: '用户权限', icon: Shield },
+  { key: 'ai', label: 'AI模型配置', icon: Sparkles },
 ];
+
+interface AIProvider {
+  id: string;
+  name: string;
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+  enabled: boolean;
+  lastTest?: 'ok' | 'fail' | null;
+}
 
 function SourcesPanel() {
   const { data } = useQuery({ queryKey: ['data-sources'], queryFn: api.getDataSources });
@@ -213,6 +224,159 @@ function UsersPanel() {
   );
 }
 
+const DEFAULT_PROVIDERS: AIProvider[] = [
+  { id: '1', name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat', apiKey: '', enabled: true, lastTest: null },
+  { id: '2', name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o', apiKey: '', enabled: false, lastTest: null },
+];
+
+function AIConfigPanel() {
+  const [providers, setProviders] = useState<AIProvider[]>(() => {
+    const saved = localStorage.getItem('ai-providers');
+    return saved ? JSON.parse(saved) : DEFAULT_PROVIDERS;
+  });
+  const [testing, setTesting] = useState<string | null>(null);
+
+  const saveProviders = (p: AIProvider[]) => {
+    setProviders(p);
+    localStorage.setItem('ai-providers', JSON.stringify(p));
+  };
+
+  const addProvider = () => {
+    const newId = String(Date.now());
+    saveProviders([...providers, {
+      id: newId, name: '新模型', baseUrl: 'https://api.example.com/v1',
+      model: 'default', apiKey: '', enabled: false, lastTest: null,
+    }]);
+  };
+
+  const removeProvider = (id: string) => {
+    saveProviders(providers.filter((p) => p.id !== id));
+  };
+
+  const updateProvider = (id: string, updates: Partial<AIProvider>) => {
+    saveProviders(providers.map((p) => p.id === id ? { ...p, ...updates } : p));
+  };
+
+  const testConnection = async (provider: AIProvider) => {
+    setTesting(provider.id);
+    try {
+      const res = await fetch(`${provider.baseUrl}/models`, {
+        headers: { Authorization: `Bearer ${provider.apiKey}` },
+      });
+      updateProvider(provider.id, { lastTest: res.ok ? 'ok' : 'fail' });
+    } catch {
+      updateProvider(provider.id, { lastTest: 'fail' });
+    } finally {
+      setTesting(null);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold">外部大模型接口配置</h3>
+          <p className="text-sm text-muted-foreground mt-0.5">配置多个 AI 大模型 API，用于智能报告生成、数据分析等场景</p>
+        </div>
+        <button onClick={addProvider} className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors">
+          <Plus className="size-4" /> 添加模型
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {providers.map((p) => (
+          <div key={p.id} className="bg-white rounded-xl border p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">名称</label>
+                  <input
+                    value={p.name}
+                    onChange={(e) => updateProvider(p.id, { name: e.target.value })}
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Base URL</label>
+                  <input
+                    value={p.baseUrl}
+                    onChange={(e) => updateProvider(p.id, { baseUrl: e.target.value })}
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">模型名</label>
+                  <input
+                    value={p.model}
+                    onChange={(e) => updateProvider(p.id, { model: e.target.value })}
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">API Key</label>
+                  <input
+                    type="password"
+                    value={p.apiKey}
+                    onChange={(e) => updateProvider(p.id, { apiKey: e.target.value })}
+                    placeholder="sk-..."
+                    className="w-full px-3 py-1.5 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => updateProvider(p.id, { enabled: !p.enabled })}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    p.enabled ? 'bg-green-50 border-green-200 text-green-700' : 'bg-muted border-border text-muted-foreground'
+                  }`}
+                >
+                  {p.enabled ? <Wifi className="size-3" /> : <WifiOff className="size-3" />}
+                  {p.enabled ? '已启用' : '已禁用'}
+                </button>
+                <button
+                  onClick={() => testConnection(p)}
+                  disabled={testing === p.id || !p.apiKey}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border hover:bg-muted/50 disabled:opacity-40 transition-colors"
+                >
+                  {testing === p.id ? <Zap className="size-3 animate-pulse" /> :
+                   p.lastTest === 'ok' ? <CheckCircle className="size-3 text-green-500" /> :
+                   p.lastTest === 'fail' ? <XCircle className="size-3 text-red-500" /> :
+                   <Zap className="size-3" />}
+                  {testing === p.id ? '测试中' : p.lastTest === 'ok' ? '连接成功' : p.lastTest === 'fail' ? '连接失败' : '测试连接'}
+                </button>
+                <button
+                  onClick={() => removeProvider(p.id)}
+                  className="p-1.5 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {providers.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground">
+          <Sparkles className="size-10 mx-auto mb-2 opacity-20" />
+          <p>暂无配置的模型，点击「添加模型」开始</p>
+        </div>
+      )}
+
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+        <p className="font-medium mb-1">使用说明</p>
+        <ul className="list-disc pl-4 space-y-0.5 text-xs text-blue-700">
+          <li>API Key 仅存储在浏览器本地 (localStorage)，不会上传到任何服务器</li>
+          <li>DeepSeek API 是国内可用、性价比高的大模型接口（<a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="underline">获取 Key</a>）</li>
+          <li>支持所有 OpenAI 兼容接口（通义千问、智谱 GLM、月之暗面等）</li>
+          <li>AI 分析中心报告生成将使用第一个已启用的模型</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export function AdminPage() {
   const [tab, setTab] = useState<AdminTab>('sources');
 
@@ -245,6 +409,7 @@ export function AdminPage() {
         {tab === 'features' && <FeaturesPanel />}
         {tab === 'models' && <ModelsPanel />}
         {tab === 'users' && <UsersPanel />}
+        {tab === 'ai' && <AIConfigPanel />}
       </SectionCard>
     </div>
   );

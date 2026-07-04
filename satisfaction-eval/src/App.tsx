@@ -3,6 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { AnalysisCenter } from '@/features/analysis/pages/AnalysisCenter';
+import { UploadPage } from '@/features/upload/pages/UploadPage';
+import { PipelinePage } from '@/features/pipeline/pages/PipelinePage';
 import { OverviewPage } from '@/features/overview/pages/OverviewPage';
 import { DissatisfactionPage } from '@/features/dissatisfaction/pages/DissatisfactionPage';
 import { SurveyPage } from '@/features/survey/pages/SurveyPage';
@@ -13,6 +16,7 @@ import { ReportsPage } from '@/features/reports/pages/ReportsPage';
 import { AlertsPage } from '@/features/alerts/pages/AlertsPage';
 import { IngestionPage } from '@/features/ingestion/pages/IngestionPage';
 import { AdminPage } from '@/features/admin/pages/AdminPage';
+import { SystemStatus } from '@/features/system/pages/SystemStatus';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +43,9 @@ export default function App() {
               </ProtectedRoute>
             }
           >
+            <Route path="/analysis" element={<AnalysisCenter />} />
+            <Route path="/upload" element={<UploadPage />} />
+            <Route path="/pipeline" element={<PipelinePage />} />
             <Route path="/overview" element={<OverviewPage />} />
             <Route path="/dissatisfaction" element={<DissatisfactionPage />} />
             <Route path="/survey" element={<SurveyPage />} />
@@ -52,8 +59,9 @@ export default function App() {
             <Route path="/admin/features" element={<AdminPage />} />
             <Route path="/admin/models" element={<AdminPage />} />
             <Route path="/admin/users" element={<AdminPage />} />
-            <Route index element={<Navigate to="/overview" replace />} />
-            <Route path="*" element={<Navigate to="/overview" replace />} />
+            <Route path="/system" element={<SystemStatus />} />
+            <Route index element={<Navigate to="/analysis" replace />} />
+            <Route path="*" element={<Navigate to="/analysis" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

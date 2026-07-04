@@ -5,7 +5,7 @@ import { SectionCard } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/table';
 import { DrillDown } from '@/components/ui/drilldown';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend, BarChart, Bar, Cell } from 'recharts';
 import type { SurveyUser } from '@/types/domain';
 import { cn } from '@/lib/utils';
 import { Search, Download } from 'lucide-react';
@@ -92,12 +92,17 @@ export function SurveyPage() {
 
             <SectionCard title="意愿等级分布">
               <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={levelDistData}>
+                <BarChart data={levelDistData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="name" fontSize={12} />
                   <YAxis fontSize={12} />
-                  <Tooltip />
-                </AreaChart>
+                  <Tooltip formatter={(value) => (typeof value === 'number' ? value.toLocaleString() : value) + ' 人'} />
+                  <Bar dataKey="value" name="用户数" radius={[6, 6, 0, 0]}>
+                    {levelDistData.map((entry, idx) => (
+                      <Cell key={idx} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
             </SectionCard>
           </div>

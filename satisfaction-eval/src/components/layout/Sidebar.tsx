@@ -7,12 +7,13 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Frown, Users, AlertTriangle, CheckSquare,
   BookOpen, FileText, Settings, Database, Cpu, Box, Shield, Bell,
-  ChevronDown, ChevronLeft,
+  ChevronDown, ChevronLeft, Upload, Play, Sparkles, Activity,
 } from 'lucide-react';
 
 const iconMap: Record<string, React.ElementType> = {
   LayoutDashboard, Frown, Users, AlertTriangle, CheckSquare,
   BookOpen, FileText, Settings, Database, Cpu, Box, Shield, Bell,
+  Upload, Play, Sparkles, Activity,
 };
 
 function NavItemRenderer({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
